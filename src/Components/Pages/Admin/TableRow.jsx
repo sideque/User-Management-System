@@ -7,23 +7,39 @@ const TableRow = ({ data, setData, setInput, del }) => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [Id, setId] = useState(null)
-    useEffect(() => {
-
-        const fetchdata = async () => {
-            try {
-                const res = await axiosInstance.get('/getData')
-                if (res.data.success) {
-                    setData(res.data.data)
-                }
-            } catch (error) {
-                return alert(error, 'error from fetchdata dashboard')
+    const fetchdata = async () => {
+        try {
+            const res = await axiosInstance.get("/getData")
+            if (res.data.success) {
+                setData(res.data.data)
             }
+        } catch (error) {
+            console.log(error)
         }
+    }
+
+    useEffect(() => {
         fetchdata()
-    }, [isModalOpen])
+    }, []);
+
+
     return (
         <div className="p-8 px-16">
-            <Modal isOpen={isModalOpen} Id={Id} setId={setId} Name={name} Email={email} editModal={editModal} onClose={() => { setModalOpen(false); setEditModal(false); setName(""); setEmail("") }} />
+            <Modal 
+                isOpen={isModalOpen}
+                Id={Id} 
+                setId={setId} 
+                Name={name} 
+                Email={email}
+                editModal={editModal}
+                fetchdata={fetchdata} 
+                onClose={() => { 
+                    setModalOpen(false);
+                    setEditModal(false); 
+                    setName(""); 
+                    setEmail("") 
+                    }} 
+                />
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 ">
                 <div className='flex w-full gap-4'>
                     <div className="relative flex-1 max-w-md">

@@ -1,170 +1,254 @@
 import { useEffect, useState } from "react";
 import axios from "../../../../api/axiosInstance";
-import { Namevalidation, Passwordvalidation, emailvalidation } from '../../../Utiles/validation';
+import {
+  Namevalidation,
+  Passwordvalidation,
+  emailvalidation,
+} from "../../../Utiles/validation";
 import Swal from "sweetalert2";
 
-const Modal = ({ isOpen, Name, Id, setId, Email, editModel, onClose }) => {
+const Modal = ({
+  isOpen,
+  Name,
+  Email,
+  Id,
+  setId,
+  editModal,
+  onClose,
+  fetchdata,
+}) => {
 
-    if (!isOpen) return null;
+  const isEdit = editModal === true;
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [name, setName] = useState("");
-    const [error, setError] = useState("");
-    const [nameError, setNameError] = useState("");
-    const [passError, setPassError] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    useEffect(() => {
-        if (isOpen && editModel) {
-            setName(Name || "");
-            setEmail(Email || "");
-        }
-    }, [isOpen, editModel, Name, Email]);
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passError, setPassError] = useState("");
 
-    function handleNameChange(e) {
-        setName(e.target.value);
-        const error = Namevalidation(e.target.value);
-        setNameError(error || "");
+  // Prefill data in edit mode
+  useEffect(() => {
+
+    if (isOpen && isEdit) {
+      setName(Name || "");
+      setEmail(Email || "");
     }
 
-    function handleEmailChange(e) {
-        setEmail(e.target.value);
-        const error = emailvalidation(e.target.value);
-        setError(error || "");
+    if (isOpen && !isEdit) {
+      resetForm();
     }
 
-    function handlePasswordChange(e) {
-        setPassword(e.target.value);
-        const error = Passwordvalidation(e.target.value);
-        setPassError(error || "");
-    }
+  }, [isOpen, isEdit, Name, Email]);
 
-    async function handleEditForm(e) {
 
-        e.preventDefault();
+  function resetForm() {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setNameError("");
+    setEmailError("");
+    setPassError("");
+  }
 
-        const nameErr = Namevalidation(name);
-        const emailErr = emailvalidation(email);
 
-        setNameError(nameErr || "");
-        setError(emailErr || "");
+  function handleClose() {
+    resetForm();
+    setId(null);
+    onClose();
+  }
 
-        if (nameErr || emailErr) return;
 
-        try {
+  function handleNameChange(e) {
+    const value = e.target.value;
+    setName(value);
+    setNameError(Namevalidation(value) || "");
+  }
 
-            const updateData = { name, email };
+  function handleEmailChange(e) {
+    const value = e.target.value;
+    setEmail(value);
+    setEmailError(emailvalidation(value) || "");
+  }
 
-            const result = await axios.patch(`/edit/${Id}`, updateData);
+  function handlePasswordChange(e) {
+    const value = e.target.value;
+    setPassword(value);
+    setPassError(Passwordvalidation(value) || "");
+  }
 
-            if (result.data.success) {
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Updated!',
-                    text: 'User updated successfully',
-                    timer: 2000
-                });
+  async function handleSubmit(e) {
 
-                onClose();
+    e.preventDefault();
 
-            }
+    const nameErr = Namevalidation(name);
+    const emailErr = emailvalidation(email);
+    const passErr = !isEdit ? Passwordvalidation(password) : "";
 
-        } catch (error) {
+    setNameError(nameErr || "");
+    setEmailError(emailErr || "");
+    setPassError(passErr || "");
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.response?.data?.message
-            });
+    if (nameErr || emailErr || passErr) return;
 
-        }
-    }
 
-    async function handleFormSubmission(e) {
+    try {
 
-        e.preventDefault();
+      if (isEdit) {
 
-        const nameErr = Namevalidation(name);
-        const emailErr = emailvalidation(email);
-        const passErr = Passwordvalidation(password);
+        const res = await axios.patch(`/edit/${Id}`, {
+          name,
+          email,
+        });
 
-        setNameError(nameErr || "");
-        setError(emailErr || "");
-        setPassError(passErr || "");
+        if (res.data.success) {
 
-        if (nameErr || emailErr || passErr) return;
-
-        try {
-
-            const res = await axios.post("/register", { email, password, name });
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Registered successfully'
-            });
-
-            onClose();
-
-        } catch (error) {
-
-            Swal.fire({
-                icon: 'error',
-                title: error.response?.data?.message
-            });
+          Swal.fire({
+            icon: "success",
+            title: "User Updated Successfully",
+            timer: 1500,
+            showConfirmButton: false,
+          });
 
         }
+
+      } else {
+
+        const res = await axios.post("/register", {
+          name,
+          email,
+          password,
+        });
+
+        if (res.data.success) {
+
+          Swal.fire({
+            icon: "success",
+            title: "User Added Successfully",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+
+        }
+
+      }
+
+      fetchdata();
+      handleClose();
+
+    } catch (error) {
+
+      Swal.fire({
+        icon: "error",
+        title: error.response?.data?.message || "Something went wrong",
+      });
+
     }
 
-    return (
+  }
 
-        <div className="fixed inset-0 flex items-center justify-center z-50 custom-blur">
 
-            <div className="bg-blue-200 p-6 rounded">
+  if (!isOpen) return null;
 
-                <form onSubmit={editModel ? handleEditForm : handleFormSubmission}>
 
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={handleNameChange}
-                        placeholder="Enter name"
-                    />
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
 
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={handleEmailChange}
-                        placeholder="Enter email"
-                    />
+      <div className="bg-white w-96 p-6 rounded-xl shadow-xl">
 
-                    {!editModel && (
-                        <input
-                            type="password"
-                            onChange={handlePasswordChange}
-                            placeholder="Enter password"
-                        />
-                    )}
+        <h2 className="text-xl font-bold mb-4 text-center">
+          {isEdit ? "Edit User" : "Add User"}
+        </h2>
 
-                    <button type="submit">
-                        {editModel ? "Edit" : "Register"}
-                    </button>
 
-                </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-                <button onClick={() => {
-                    onClose();
-                    setId(null);
-                }}>
-                    Close
-                </button>
+          {/* Name */}
+          <div>
+
+            <input
+              type="text"
+              placeholder="Enter Name"
+              value={name}
+              onChange={handleNameChange}
+              className="w-full border p-2 rounded"
+            />
+
+            {nameError && (
+              <p className="text-red-500 text-sm">{nameError}</p>
+            )}
+
+          </div>
+
+
+          {/* Email */}
+          <div>
+
+            <input
+              type="email"
+              placeholder="Enter Email"
+              value={email}
+              onChange={handleEmailChange}
+              className="w-full border p-2 rounded"
+            />
+
+            {emailError && (
+              <p className="text-red-500 text-sm">{emailError}</p>
+            )}
+
+          </div>
+
+
+          {/* Password only for Add */}
+          {!isEdit && (
+
+            <div>
+
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={handlePasswordChange}
+                className="w-full border p-2 rounded"
+              />
+
+              {passError && (
+                <p className="text-red-500 text-sm">{passError}</p>
+              )}
 
             </div>
 
-        </div>
+          )}
 
-    )
 
-}
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          >
+            {isEdit ? "Update User" : "Add User"}
+          </button>
+
+
+        </form>
+
+
+        {/* Close Button */}
+        <button
+          onClick={handleClose}
+          className="w-full mt-3 bg-red-500 text-white py-2 rounded hover:bg-red-600"
+        >
+          Cancel
+        </button>
+
+
+      </div>
+
+    </div>
+  );
+
+};
 
 export default Modal;
