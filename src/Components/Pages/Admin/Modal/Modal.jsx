@@ -42,7 +42,6 @@ const Modal = ({
 
   }, [isOpen, isEdit, Name, Email]);
 
-
   function resetForm() {
     setName("");
     setEmail("");
@@ -52,13 +51,11 @@ const Modal = ({
     setPassError("");
   }
 
-
   function handleClose() {
     resetForm();
     setId(null);
     onClose();
   }
-
 
   function handleNameChange(e) {
     const value = e.target.value;
@@ -78,7 +75,6 @@ const Modal = ({
     setPassError(Passwordvalidation(value) || "");
   }
 
-
   async function handleSubmit(e) {
 
     e.preventDefault();
@@ -92,8 +88,6 @@ const Modal = ({
     setPassError(passErr || "");
 
     if (nameErr || emailErr || passErr) return;
-
-
     try {
 
       if (isEdit) {
@@ -115,7 +109,6 @@ const Modal = ({
         }
 
       } else {
-
         const res = await axios.post("/register", {
           name,
           email,
@@ -123,7 +116,6 @@ const Modal = ({
         });
 
         if (res.data.success) {
-
           Swal.fire({
             icon: "success",
             title: "User Added Successfully",
@@ -139,19 +131,14 @@ const Modal = ({
       handleClose();
 
     } catch (error) {
-
       Swal.fire({
         icon: "error",
         title: error.response?.data?.message || "Something went wrong",
       });
-
     }
-
   }
 
-
   if (!isOpen) return null;
-
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -162,12 +149,9 @@ const Modal = ({
           {isEdit ? "Edit User" : "Add User"}
         </h2>
 
-
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Name */}
           <div>
-
             <input
               type="text"
               placeholder="Enter Name"
@@ -179,11 +163,8 @@ const Modal = ({
             {nameError && (
               <p className="text-red-500 text-sm">{nameError}</p>
             )}
-
           </div>
 
-
-          {/* Email */}
           <div>
 
             <input
@@ -200,12 +181,9 @@ const Modal = ({
 
           </div>
 
-
-          {/* Password only for Add */}
           {!isEdit && (
 
             <div>
-
               <input
                 type="password"
                 placeholder="Enter Password"
@@ -217,32 +195,23 @@ const Modal = ({
               {passError && (
                 <p className="text-red-500 text-sm">{passError}</p>
               )}
-
             </div>
-
           )}
 
-
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
           >
             {isEdit ? "Update User" : "Add User"}
           </button>
-
-
         </form>
 
-
-        {/* Close Button */}
         <button
           onClick={handleClose}
           className="w-full mt-3 bg-red-500 text-white py-2 rounded hover:bg-red-600"
         >
           Cancel
         </button>
-
 
       </div>
 
